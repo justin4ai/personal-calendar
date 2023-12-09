@@ -68,7 +68,7 @@ public class DateBox extends JPanel {
 
         try (Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd)) {
             // 날짜 형식 설정
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             System.out.println("fetch Events");
             // 주어진 년월일에 해당하는 일정을 가져오는 SQL 쿼리
             String sql = "SELECT * FROM events " +

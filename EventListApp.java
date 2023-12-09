@@ -60,7 +60,7 @@ public class EventListApp extends JFrame {
 
             PreparedStatement preparedStatement = connection
                     .prepareStatement(
-                            "SELECT event_id, title, location, participants, start_time, end_time  FROM events");
+                            "SELECT event_id, title, location, participants, start_time, end_time FROM events");
 
             ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -68,7 +68,7 @@ public class EventListApp extends JFrame {
                 eventListModel.addElement("(" + resultSet.getString("event_id") + ")" + resultSet.getString("title") +
                         " at " + resultSet.getString("location") + " || from " + resultSet.getTimestamp("start_time")
                         + " to " + resultSet.getTimestamp("start_time") + " || with "
-                        + resultSet.getTimestamp("participants"));
+                        + resultSet.getString("participants"));
             }
 
             resultSet.close();

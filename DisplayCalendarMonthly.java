@@ -9,6 +9,10 @@ import java.util.Vector;
 import java.util.Locale;
 import java.util.List;
 
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -60,6 +64,12 @@ public class DisplayCalendarMonthly extends JFrame {
     int lastDate; // 월의 마지막 날
 
     public DisplayCalendarMonthly() {
+
+        ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+
+        // 1분마다 checkReminders 메서드를 실행
+        scheduler.scheduleAtFixedRate(ReminderPopup::checkReminders, 0, 1, TimeUnit.MINUTES);
+
         JOptionPane.showMessageDialog(null,
                 String.format("Hello %s, welcome to Justin's family calendar.", PersonalCalendar.name),
                 String.format("Your user id is '%d'", PersonalCalendar.userID), JOptionPane.INFORMATION_MESSAGE);

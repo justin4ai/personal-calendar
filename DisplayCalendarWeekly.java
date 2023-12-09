@@ -162,7 +162,7 @@ public class DisplayCalendarWeekly extends JFrame {
         bt_modeChange.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Before disposing");
-                frame2.dispose();
+                frame3.dispose();
                 System.out.println("After disposing");
                 Helpers.modeChange(3);
             }

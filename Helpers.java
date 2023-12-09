@@ -48,7 +48,7 @@ public class Helpers {
         JTextField timeframe = new JTextField(2);
         JTextField interval = new JTextField(2);
 
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
         title.setText("TODAY_" + (System.currentTimeMillis() / (60 * 1000)));
         location.setText("home");
@@ -304,15 +304,26 @@ public class Helpers {
             viewEventsDialog.setTitle("Search events");
 
             // Create JTextField components for name and password
-            JTextField title = new JTextField(20);
-            JTextField participants = new JTextField(20);
-            JTextField location = new JTextField(20);
+            JTextField title = new JTextField(30);
+            JTextField participants = new JTextField(50);
+            JTextField location = new JTextField(30);
             JTextField startDate = new JTextField(20);
             JTextField endDate = new JTextField(20);
+
+            title.setText("TODAY");
+            participants.setText("Justin");
+            location.setText("home");
 
             // Create JButton to submit the input
             JButton searchButton = new JButton("Search");
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+
+            Calendar calendar = Calendar.getInstance();
+            startDate.setText(dateFormat.format(calendar.getTime()));
+
+            Calendar calendar2 = Calendar.getInstance();
+            calendar2.add(Calendar.DAY_OF_MONTH, 1);
+            endDate.setText(dateFormat.format(calendar2.getTime()));
 
             // Create ActionListener for the submit button
             searchButton.addActionListener(new ActionListener() {
@@ -356,7 +367,7 @@ public class Helpers {
 
                         // Redundant name-passwd pair will be denied
 
-                        if (resultSet.next()) {
+                        while (resultSet.next()) {
                             // 여기에서 곧바로 이어서.
                             Timestamp startTime = resultSet.getTimestamp("start_time");
                             Timestamp endTime = resultSet.getTimestamp("end_time");
@@ -367,11 +378,12 @@ public class Helpers {
 
                             // 날짜, 시간 정보 추출
                             SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy년 MM월 dd일");
-                            SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
+                            // SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
 
                             Vector<String> rowData = new Vector<>();
                             rowData.add(dateFormatter.format(startTime) + "부터 " + dateFormatter.format(endTime) + "까지");
-                            rowData.add(timeFormatter.format(startTime) + "부터 " + timeFormatter.format(endTime) + "까지");
+                            // rowData.add(timeFormatter.format(startTime) + "부터 " +
+                            // timeFormatter.format(endTime) + "까지");
                             rowData.add(eventTitle);
 
                             tableModel.addRow(rowData);
@@ -381,14 +393,14 @@ public class Helpers {
                                     "부터 " +
                                     dateFormatter.format(endTime) +
                                     "까지\n" +
-                                    "시간: " +
-                                    timeFormatter.format(startTime) +
-                                    "부터 " +
-                                    timeFormatter.format(endTime) +
-                                    "까지\n" +
-                                    "제목: " + eventTitle;
+                                    "시간: "; // +
+                            // timeFormatter.format(startTime) +
+                            // "부터 " +
+                            // timeFormatter.format(endTime) +
+                            // "까지\n" +
+                            // "제목: " + eventTitle;
 
-                            tableModel.addRow(rowData);
+                            // tableModel.addRow(rowData);
                             // eventListModel.addElement(itemText);
                             // eventListModel.addElement("separator");
                         }
@@ -705,14 +717,15 @@ public class Helpers {
                 if (location.equals("")) {
                     return ";";
                 } else {
-                    return " AND location=" + location + ";";
+                    return " AND location=" + "'" + location + "'" + ";";
                 }
 
             } else {
                 if (location.equals("")) {
                     return String.format(" AND participants LIKE '%%%s%%'", participant) + ";";
                 } else {
-                    return String.format(" AND participants LIKE '%%%s%%'", participant) + " AND location=" + location
+                    return String.format(" AND participants LIKE '%%%s%%'", participant) + " AND location=" + "'"
+                            + location + "'"
                             + ";";
                 }
             }
@@ -722,7 +735,8 @@ public class Helpers {
                 if (location.equals("")) {
                     return String.format(" AND title LIKE '%%%s%%'", title + ";");
                 } else {
-                    return String.format(" AND title LIKE '%%%s%%'", title) + " AND location=" + location + ";";
+                    return String.format(" AND title LIKE '%%%s%%'", title) + " AND location=" + "'" + location + "'"
+                            + ";";
                 }
 
             } else {
@@ -732,7 +746,7 @@ public class Helpers {
                 } else {
                     return String.format(" AND title LIKE '%%%s%%'", title)
                             + String.format(" AND participants LIKE '%%%s%%'", participant)
-                            + " AND location=" + location + ";";
+                            + " AND location=" + "'" + location + "'" + ";";
                 }
             }
         }
