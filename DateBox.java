@@ -11,6 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -27,6 +31,7 @@ public class DateBox extends JPanel {
     String month;
     Boolean flag;
     String year;
+    private Map<String, List<String>> eventDataMap = new HashMap<>();
 
     public DateBox(String day, Color color, int width, int height) {
         this.day = day;
@@ -70,7 +75,7 @@ public class DateBox extends JPanel {
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             System.out.println("fetch Events");
             // 주어진 년월일에 해당하는 일정을 가져오는 SQL 쿼리
-            String sql = "SELECT * FROM eventinfo " +
+            String sql = "SELECT * FROM events " +
                     "WHERE EXTRACT(YEAR FROM start_time) = ? " +
                     "AND EXTRACT(MONTH FROM start_time) = ? " +
                     "AND EXTRACT(DAY FROM start_time) = ?";
@@ -89,17 +94,30 @@ public class DateBox extends JPanel {
                         Date startTime = resultSet.getTimestamp("start_time");
 
                         // JButton 생성
-                        JButton eventButton = new JButton(
-                                String.format("%s - %s", title, dateFormat.format(startTime)));
-                        eventButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        // JButton eventButton = new JButton(
+                        // String.format("%s - %s", title, dateFormat.format(startTime)));
+                        // eventButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
+                        JLabel eventLabel = new JLabel(String.format("%s", title));
+                        eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                         // JButton을 DateBox에 추가
-                        add(eventButton);
+                        // add(eventButton);
+                        add(eventLabel);
                     }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
+    }
+
+    private void fetchDataFromDatabase() {
+        // 데이터베이스에서 데이터 가져오는 작업
+        // ...
+    }
+
+    private void displayEvents() {
+        // 일정 정보를 UI에 표시하는 작업
+        // ...
     }
 }
