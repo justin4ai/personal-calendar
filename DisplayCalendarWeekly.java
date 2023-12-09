@@ -40,6 +40,7 @@ public class DisplayCalendarWeekly extends JFrame {
     JFrame frame2;
     JFrame frame3;
     String month;
+    JButton bt_updateUser;
 
     JPanel calendarPanel;
     Calendar cal; // 날짜 객체
@@ -59,14 +60,11 @@ public class DisplayCalendarWeekly extends JFrame {
 
     public DisplayCalendarWeekly() {
 
-        System.out.println("-------------------Weekly Mode-------------------");
         frame3 = new JFrame("Family Calendar by Justin (Weekly Mode)");
         frame3.setTitle("Weekly Calendar");
         frame3.setSize(1600, 800);
         frame3.setLayout(new BorderLayout());
         frame3.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        System.out.println("Where is the prob? 1");
 
         JTable weeklyTable = new JTable();
         JPanel p_north = new JPanel();
@@ -92,15 +90,15 @@ public class DisplayCalendarWeekly extends JFrame {
         bt_create_event = new JButton("Create an event");
         bt_update_event = new JButton("Modify an event");
         bt_delete_event = new JButton("Delete an event");
-        bt_RVSP = new JButton("RVSP");
+        // bt_RVSP = new JButton("RSVP");
         bt_notification = new JButton("Notifications");
         bt_eventList = new JButton("View event list");
-        bt_createUser = new JButton("Create an account");
+        bt_createUser = new JButton("Create user");
         bt_modeChange = new JButton("Mode change");
+        bt_updateUser = new JButton("Update user");
 
         // calendarPanel = new JPanel(new GridLayout(0, 1));
 
-        System.out.println("Where is the prob? 2");
         prevWeekButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -109,7 +107,6 @@ public class DisplayCalendarWeekly extends JFrame {
                 updateWeeklyCalendar(weeklyTable, cal.getTime());
             }
         });
-        System.out.println("Where is the prob? 3");
         nextWeekButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -118,63 +115,72 @@ public class DisplayCalendarWeekly extends JFrame {
                 updateWeeklyCalendar(weeklyTable, cal.getTime());
             }
         });
-        System.out.println("Where is the prob? 4");
+
         // Create an event
         bt_create_event.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Helpers.createEvent();
             }
         });
-        System.out.println("Where is the prob? 5");
+
         // Update an event
         bt_update_event.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Helpers.updateEvent();
             }
         });
-        System.out.println("Where is the prob? 6");
+
         // Delete an event
         bt_delete_event.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Helpers.deleteEvent();
             }
         });
-        System.out.println("Where is the prob? 7");
-        // Notification
-        bt_notification.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Helpers.notification();
-            }
-        });
 
-        // // RVSP
-        // bt_RVSP.addActionListener(new ActionListener() {
+        // Notification
+        // bt_notification.addActionListener(new ActionListener() {
         // public void actionPerformed(ActionEvent e) {
-        // Helpers.sendRSVP();
+        // Helpers.notification();
         // }
         // });
-        System.out.println("Where is the prob? 8");
+
+        // RVSP
+        // bt_RVSP.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // sendRSVP();
+        // }
+        // });
+
         // Event list
         bt_eventList.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Helpers.eventList();
             }
         });
-        System.out.println("Where is the prob? 9");
+
         // Mode change
         bt_modeChange.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                Helpers.modeChange(2);
+                System.out.println("Before disposing");
+                frame2.dispose();
+                System.out.println("After disposing");
+                Helpers.modeChange(3);
             }
         });
-        System.out.println("Where is the prob? 10");
+
         // User create
         bt_createUser.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 Helpers.createUser();
             }
         });
-        System.out.println("Where is the prob? 11");
+
+        bt_updateUser.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Helpers.updateUser(PersonalCalendar.name);
+            }
+        });
+
         // System.out.println(String.format("Cal.getTime : %s", cal.getTime()));
         updateWeeklyCalendar(weeklyTable, cal.getTime());
 

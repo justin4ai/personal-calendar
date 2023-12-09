@@ -11,10 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -31,7 +27,6 @@ public class DateBox extends JPanel {
     String month;
     Boolean flag;
     String year;
-    private Map<String, List<String>> eventDataMap = new HashMap<>();
 
     public DateBox(String day, Color color, int width, int height) {
         this.day = day;
@@ -52,6 +47,7 @@ public class DateBox extends JPanel {
 
     @Override
     protected void paintComponent(Graphics g) {
+
         super.paintComponent(g);
 
         g.setColor(color);
@@ -62,6 +58,7 @@ public class DateBox extends JPanel {
 
         if ((flag == true) && (day != "")) {
             System.out.println(String.format("Datebox for %s-%s-%s", year, month, day));
+            Helpers.clearButtons(this);
             fetchEvents();
         }
     }
@@ -69,8 +66,7 @@ public class DateBox extends JPanel {
     private void fetchEvents() {
         // JDBC 연결 정보 설정
 
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                "dob", "dobstudio")) {
+        try (Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd)) {
             // 날짜 형식 설정
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             System.out.println("fetch Events");
@@ -94,30 +90,17 @@ public class DateBox extends JPanel {
                         Date startTime = resultSet.getTimestamp("start_time");
 
                         // JButton 생성
-                        // JButton eventButton = new JButton(
-                        // String.format("%s - %s", title, dateFormat.format(startTime)));
-                        // eventButton.setAlignmentX(Component.LEFT_ALIGNMENT);
+                        JButton eventButton = new JButton(
+                                String.format("%s - %s", title, dateFormat.format(startTime)));
+                        eventButton.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-                        JLabel eventLabel = new JLabel(String.format("%s", title));
-                        eventLabel.setAlignmentX(Component.LEFT_ALIGNMENT);
                         // JButton을 DateBox에 추가
-                        // add(eventButton);
-                        add(eventLabel);
+                        add(eventButton);
                     }
                 }
             }
         } catch (SQLException e) {
             e.printStackTrace();
         }
-    }
-
-    private void fetchDataFromDatabase() {
-        // 데이터베이스에서 데이터 가져오는 작업
-        // ...
-    }
-
-    private void displayEvents() {
-        // 일정 정보를 UI에 표시하는 작업
-        // ...
     }
 }

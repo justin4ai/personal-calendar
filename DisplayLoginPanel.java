@@ -22,6 +22,8 @@ public class DisplayLoginPanel extends JFrame {
     public DisplayLoginPanel() {
         // Log-in panel here
         JFrame frame = new JFrame("Log-in to family calendar");
+        ImageIcon imageIcon = new ImageIcon("./calendar.png");
+        JLabel label = new JLabel(imageIcon);
         frame.setLocationRelativeTo(null);
 
         // Create JTextField components for name and password
@@ -59,8 +61,10 @@ public class DisplayLoginPanel extends JFrame {
         });
 
         // Create a JPanel to hold the components
+        JPanel panelforimg = new JPanel();
         JPanel panel = new JPanel(new GridLayout(3, 2));
 
+        panelforimg.add(label);
         // Add components to the panel
         panel.add(new JLabel("Name: "));
         panel.add(nameField);
@@ -69,11 +73,12 @@ public class DisplayLoginPanel extends JFrame {
         panel.add(submitButton, BorderLayout.CENTER);
 
         // Add the panel to the frame
-        frame.add(panel);
+        frame.add(panelforimg, BorderLayout.NORTH);
+        frame.add(panel, BorderLayout.SOUTH);
 
         // Set frame properties
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 150);
+        frame.pack();
         frame.setVisible(true);
     }
 
@@ -85,8 +90,7 @@ public class DisplayLoginPanel extends JFrame {
         String SQL_SELECT = String.format("SELECT user_id, name FROM users WHERE name='%s' and password='%s'", username,
                 userpassword);
 
-        try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob", "dob",
-                "dobstudio");
+        try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
                 PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
             ResultSet resultSet = preparedStatement.executeQuery();
 

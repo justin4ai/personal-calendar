@@ -9,7 +9,9 @@ import java.util.Vector;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.Locale;
+import java.util.Map;
 import java.util.List;
+import java.sql.Statement;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -19,9 +21,15 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.text.ParseException;
 
 public class Helpers {
+
+    public static String dbURL = "jdbc:postgresql://127.0.0.1:5432/dob";
+    public static String dbUser = "dob";
+    public static String dbPasswd = "dobstudio";
+    public static Map<String, List<String>> eventDataMap = new HashMap<>();
 
     // After clicking create an event button
     public static void createEvent() {
@@ -30,14 +38,37 @@ public class Helpers {
 
         // Create JTextField components for name and password
         JTextField title = new JTextField(30);
-        JTextField startTime = new JTextField(20);
-        JTextField location = new JTextField(20);
-        JTextField endTime = new JTextField(20);
-        JTextField participant = new JTextField(20);
+        JTextField startTime = new JTextField(30);
+        // startTime.setText("2023-12-08 03:00:00");
+        JTextField location = new JTextField(30);
+        JTextField endTime = new JTextField(30);
+        // endTime.setText("2023-12-09 03:00:00");
+        JTextField participant = new JTextField(50);
         JTextField description = new JTextField(100);
+        JTextField timeframe = new JTextField(2);
+        JTextField interval = new JTextField(2);
 
         SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+        title.setText("TODAY_" + (System.currentTimeMillis() / (60 * 1000)));
+        location.setText("home");
+        participant.setText("Justin, YH");
+
+        // Set the start time to the current time
+        Calendar calendar1 = Calendar.getInstance();
+        calendar1.add(Calendar.HOUR, 1);
+        calendar1.add(Calendar.MINUTE, 2);
+        startTime.setText(dateFormat.format(calendar1.getTime()));
+
+        // Set the end time to 2 hours later than the current time
+        Calendar calendar2 = Calendar.getInstance();
+        calendar2.add(Calendar.HOUR, 1);
+        calendar2.add(Calendar.MINUTE, 2);
+        endTime.setText(dateFormat.format(calendar2.getTime()));
+
+        // Set default values for time frame and interval
+        timeframe.setText("60");
+        interval.setText("15");
         // Create JButton to submit the input
         JButton createButton = new JButton("Create");
 
@@ -51,16 +82,21 @@ public class Helpers {
                 String endCreated = endTime.getText();
                 String descCreated = description.getText();
                 String participantCreated = participant.getText();
+                String timeframeCreated = timeframe.getText();
+                String intervalCreated = interval.getText();
                 int creatorId = PersonalCalendar.userID;
 
                 try {
                     if (isEventAvailable(new java.sql.Timestamp(dateFormat.parse(startCreated).getTime()),
                             new java.sql.Timestamp(dateFormat.parse(endCreated).getTime()))) {
                         String SQL_INSERT1 = "INSERT INTO events (title, start_time, end_time, description, creator_id, location, participants) VALUES (?, ?, ?, ?, ?, ?, ?);";
+                        String SQL_INSERT2 = "INSERT INTO reminderinfo (event_id, time_frame, interval_q) VALUES (?, ?, ?::interval_enum);"; // for
+                        // reminder_info
 
-                        try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                                "dob", "dobstudio");
-                                PreparedStatement preparedStatement = conn.prepareStatement(SQL_INSERT1)) {
+                        try (Connection conn = DriverManager.getConnection(dbURL, dbUser, dbPasswd);
+                                PreparedStatement preparedStatement = conn.prepareStatement(SQL_INSERT1,
+                                        Statement.RETURN_GENERATED_KEYS);
+                                PreparedStatement preparedStatement2 = conn.prepareStatement(SQL_INSERT2);) {
 
                             preparedStatement.setString(1, titleCreated);
                             preparedStatement.setTimestamp(2,
@@ -73,13 +109,81 @@ public class Helpers {
                             preparedStatement.setString(7, participantCreated);
 
                             System.out.println(preparedStatement);
-                            Integer rowInserted = preparedStatement.executeUpdate();
-                            System.out.println(rowInserted);
-                            // Redundant name-passwd pair will be denied
+                            // ResultSet res = preparedStatement.executeQuery();
+                            preparedStatement.executeUpdate();
+                            ResultSet res = preparedStatement.getGeneratedKeys();
 
-                            if (rowInserted > 0) {
-                                System.out.println("User created successfully");
+                            if (res.next()) {
+
+                                JOptionPane.showMessageDialog(null, "Event has been well created!", "Event created",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                                System.out.println(String.format("res is %s", res.getInt(1)));
+                                int eventID = res.getInt(1);
+                                preparedStatement2.setInt(1, eventID);
+                                preparedStatement2.setInt(2, Integer.parseInt(timeframeCreated));
+                                preparedStatement2.setString(3, intervalCreated);
+
+                                int rowInsertion = preparedStatement2.executeUpdate();
+                                System.out.println(rowInsertion);
+                                if (rowInsertion > 0) {
+                                    System.out.println("Reminderinfo well inserted");
+                                }
+
+                                /////////////////////
+                                long startTime = dateFormat.parse(startCreated).getTime();
+
+                                long timeFrameInMillis = Integer.parseInt(timeframeCreated) * 60 * 1000; // time_frame을
+                                                                                                         // 밀리초로
+                                                                                                         // 변환
+                                long intervalInMillis = Integer.parseInt(intervalCreated) * 60 * 1000; // interval을
+                                                                                                       // 밀리초로
+                                                                                                       // 변환
+
+                                long endTime = startTime - timeFrameInMillis; // 시작 시간에서 time_frame 전의 시간
+
+                                // 현재 시각 가져오기
+                                long currentMillis = System.currentTimeMillis();
+
+                                // reminder 생성 및 데이터베이스에 추가
+
+                                System.out.println(String.format("endTime : %s", endTime));
+                                System.out.println(String.format("startTime : %s", startTime));
+                                while (endTime < startTime) {
+                                    System.out.println(String.format("endTime : %s", endTime));
+                                    System.out.println(String.format("startTime : %s", startTime));
+                                    // reminder 생성
+                                    if (endTime > currentMillis) { // reminder에 넣을 시간이 지금보다 나중일 때만
+                                        Timestamp reminderTime = new Timestamp(endTime);
+
+                                        // 데이터베이스에 추가
+                                        String SQL_INSERT3 = "INSERT INTO reminders (event_id, time_to_send) VALUES (?, ?);"; // for
+                                                                                                                              // reminders
+
+                                        try (Connection conn2 = DriverManager.getConnection(dbURL, dbUser,
+                                                dbPasswd);
+                                                PreparedStatement preparedStatement3 = conn2
+                                                        .prepareStatement(SQL_INSERT3);) {
+
+                                            preparedStatement3.setInt(1, eventID);
+                                            preparedStatement3.setTimestamp(2, reminderTime);
+
+                                            preparedStatement3.executeUpdate();
+                                        }
+
+                                    }
+
+                                    // 다음 reminder의 시간으로 이동
+                                    endTime += intervalInMillis;
+                                }
+                                /////////////////////
+
                                 createEventDialog.dispose();
+                            }
+
+                            else {
+                                JOptionPane.showMessageDialog(null, "Event has not been created!",
+                                        "Event not created",
+                                        JOptionPane.WARNING_MESSAGE);
                             }
 
                         } catch (SQLException ee) {
@@ -90,7 +194,7 @@ public class Helpers {
                     }
 
                     else {
-                        JOptionPane.showMessageDialog(null, "The given time frame overlaps pre-existing events.",
+                        JOptionPane.showMessageDialog(null, "The event time overlaps pre-existing events.",
                                 "Availability Error", JOptionPane.ERROR_MESSAGE);
                     }
                 } catch (ParseException eee) {
@@ -101,21 +205,30 @@ public class Helpers {
         });
 
         // Create a JPanel to hold the components
-        JPanel panel = new JPanel(new GridLayout(6, 2));
+        JPanel panel = new JPanel(new GridLayout(10, 2));
 
         // Add components to the panel
         panel.add(new JLabel("Title: "));
         panel.add(title);
         panel.add(new JLabel("Location: "));
         panel.add(location);
-        panel.add(new JLabel("Participants: "));
+        panel.add(new JLabel("<html>Participants: (ex. Justin, YH) </html>"));
         panel.add(participant);
-        panel.add(new JLabel("Start time: "));
+        panel.add(new JLabel("<html>Start time:<br>(ex. 2023-12-25 16:00:00) </html>"));
         panel.add(startTime);
-        panel.add(new JLabel("End time: "));
+        panel.add(new JLabel("<html>End time<br> (ex. 2023-12-25 17:00:00): </html>"));
         panel.add(endTime);
         panel.add(new JLabel("Description: "));
         panel.add(description);
+
+        panel.add(new JLabel("Reminder settings are below"));
+        panel.add(new JLabel(""));
+
+        panel.add(new JLabel("Time Frame (in minutes) : "));
+        panel.add(timeframe);
+        panel.add(new JLabel("<html>Interval (in minutes)<br>0 means no reminder.</html>"));
+        panel.add(interval);
+
         panel.add(createButton);
 
         // Add the panel to the frame
@@ -181,178 +294,148 @@ public class Helpers {
 
     // After clicking delete an event button
     public static void deleteEvent() {
-        JDialog deleteEventDialog = new JDialog();
-        deleteEventDialog.setTitle("Delete an event");
-
-        // Create JTextField components for name and password
-
-        // Create JButton to submit the input
-        JButton deleteButton = new JButton("Delete");
-        // Create ActionListener for the submit button
-        deleteButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-
-        // Add components to the panel
-        JPanel listPanel = new JPanel();
-        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-
-        JPanel event1 = new JPanel();
-        JPanel event2 = new JPanel();
-
-        event1.add(new JLabel("Interim event 1"));
-        event2.add(new JLabel("Interim event 2"));
-
-        listPanel.add(event1);
-        listPanel.add(event2);
-
-        JScrollPane scrollPanel = new JScrollPane(listPanel);
-        scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        // Add the scrollPanel to the dialogPanel
-        JPanel dialogPanel = new JPanel();
-        dialogPanel.setLayout(new BorderLayout());
-        dialogPanel.add(scrollPanel, BorderLayout.CENTER);
-
-        // Add the updateButton to the dialogPanel
-        dialogPanel.add(deleteButton, BorderLayout.SOUTH);
-
-        // Add the dialogPanel to the updateEventDialog
-        deleteEventDialog.add(dialogPanel);
-
-        // Add the panel to the frame
-
-        // Set frame properties
-        deleteEventDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        deleteEventDialog.setSize(400, 800);
-        deleteEventDialog.setVisible(true);
-
-        // If the user is the creator, delete the event itself
-
-        // Else, delete the user from invited people list
+        EventListApp app = new EventListApp();
+        app.setVisible(true);
     }
 
     public static void eventList() {
-        JDialog viewEventsDialog = new JDialog();
-        viewEventsDialog.setTitle("Search events");
+        SwingUtilities.invokeLater(() -> {
+            JDialog viewEventsDialog = new JDialog();
+            viewEventsDialog.setTitle("Search events");
 
-        // Create JTextField components for name and password
-        JTextField title = new JTextField(20);
-        JTextField participants = new JTextField(20);
-        JTextField location = new JTextField(20);
-        JTextField startDate = new JTextField(20);
-        JTextField endDate = new JTextField(20);
+            // Create JTextField components for name and password
+            JTextField title = new JTextField(20);
+            JTextField participants = new JTextField(20);
+            JTextField location = new JTextField(20);
+            JTextField startDate = new JTextField(20);
+            JTextField endDate = new JTextField(20);
 
-        // Create JButton to submit the input
-        JButton searchButton = new JButton("Search");
-        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+            // Create JButton to submit the input
+            JButton searchButton = new JButton("Search");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
-        // Create ActionListener for the submit button
-        searchButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            // Create ActionListener for the submit button
+            searchButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
 
-                JDialog events = new JDialog();
-                events.setLayout(new BorderLayout());
-                DefaultListModel<String> eventListModel = new DefaultListModel<>();
+                    JDialog events = new JDialog();
+                    events.setLayout(new BorderLayout());
+                    // DefaultListModel<String> eventListModel = new DefaultListModel<>();
+                    DefaultTableModel tableModel = new DefaultTableModel();
+                    tableModel.addColumn("날짜");
+                    tableModel.addColumn("시간");
+                    tableModel.addColumn("제목");
 
-                String titleCreated = title.getText();
-                String participantsCreated = participants.getText();
-                String locationCreated = location.getText();
-                String startDateCreated = startDate.getText();
-                String endDateCreated = endDate.getText();
-                System.out.println(String.format("titleCreated : %s", titleCreated));
-                System.out.println(String.format("locationCreated : %s", locationCreated));
-                System.out.println(String.format("participantsCreated : %s", participantsCreated));
+                    JTable eventTable = new JTable(tableModel);
 
-                String SQL_SELECT = "SELECT * FROM events WHERE start_time BETWEEN ? AND ?"
-                        + converter(titleCreated, participantsCreated, locationCreated);
+                    String titleCreated = title.getText();
+                    String participantsCreated = participants.getText();
+                    String locationCreated = location.getText();
+                    String startDateCreated = startDate.getText();
+                    String endDateCreated = endDate.getText();
+                    System.out.println(String.format("titleCreated : %s", titleCreated));
+                    System.out.println(String.format("locationCreated : %s", locationCreated));
+                    System.out.println(String.format("participantsCreated : %s", participantsCreated));
 
-                try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                        "dob", "dobstudio");
-                        PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
-                    System.out.println(preparedStatement);
-                    preparedStatement.setTimestamp(1,
-                            new java.sql.Timestamp(dateFormat.parse(startDateCreated).getTime()));
-                    preparedStatement.setTimestamp(2,
-                            new java.sql.Timestamp(
-                                    dateFormat.parse(endDateCreated).getTime() + 24 * 60 * 60 * 1000 - 1)); // 23시
-                    // 59분
-                    // 59초
-                    System.out.println(preparedStatement);
-                    ResultSet resultSet = preparedStatement.executeQuery();
+                    String SQL_SELECT = "SELECT * FROM events WHERE start_time BETWEEN ? AND ?"
+                            + converter(titleCreated, participantsCreated, locationCreated);
 
-                    // Redundant name-passwd pair will be denied
+                    try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
+                            PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
+                        System.out.println(preparedStatement);
+                        preparedStatement.setTimestamp(1,
+                                new java.sql.Timestamp(dateFormat.parse(startDateCreated).getTime()));
+                        preparedStatement.setTimestamp(2,
+                                new java.sql.Timestamp(
+                                        dateFormat.parse(endDateCreated).getTime() + 24 * 60 * 60 * 1000 - 1)); // 23시
+                        // 59분
+                        // 59초
+                        System.out.println(preparedStatement);
+                        ResultSet resultSet = preparedStatement.executeQuery();
 
-                    if (resultSet.next()) {
-                        // 여기에서 곧바로 이어서.
-                        Timestamp startTime = resultSet.getTimestamp("start_time");
-                        Timestamp endTime = resultSet.getTimestamp("end_time");
-                        String eventTitle = resultSet.getString("title");
+                        // Redundant name-passwd pair will be denied
 
-                        // 날짜, 시간 정보 추출
-                        SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy년 MM월 dd일");
-                        SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
+                        if (resultSet.next()) {
+                            // 여기에서 곧바로 이어서.
+                            Timestamp startTime = resultSet.getTimestamp("start_time");
+                            Timestamp endTime = resultSet.getTimestamp("end_time");
+                            String eventTitle = resultSet.getString("title");
+                            System.out.println(startTime);
+                            System.out.println(endTime);
+                            System.out.println(eventTitle);
 
-                        String itemText = "날짜: " +
-                                dateFormatter.format(startTime) +
-                                "부터 " +
-                                dateFormatter.format(endTime) +
-                                "까지\n" +
-                                "시간: " +
-                                timeFormatter.format(startTime) +
-                                "부터 " +
-                                timeFormatter.format(endTime) +
-                                "까지\n" +
-                                "제목: " + eventTitle;
+                            // 날짜, 시간 정보 추출
+                            SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy년 MM월 dd일");
+                            SimpleDateFormat timeFormatter = new SimpleDateFormat("HH:mm");
 
-                        eventListModel.addElement(itemText);
-                        eventListModel.addElement("separator");
+                            Vector<String> rowData = new Vector<>();
+                            rowData.add(dateFormatter.format(startTime) + "부터 " + dateFormatter.format(endTime) + "까지");
+                            rowData.add(timeFormatter.format(startTime) + "부터 " + timeFormatter.format(endTime) + "까지");
+                            rowData.add(eventTitle);
+
+                            tableModel.addRow(rowData);
+
+                            String itemText = "날짜: " +
+                                    dateFormatter.format(startTime) +
+                                    "부터 " +
+                                    dateFormatter.format(endTime) +
+                                    "까지\n" +
+                                    "시간: " +
+                                    timeFormatter.format(startTime) +
+                                    "부터 " +
+                                    timeFormatter.format(endTime) +
+                                    "까지\n" +
+                                    "제목: " + eventTitle;
+
+                            tableModel.addRow(rowData);
+                            // eventListModel.addElement(itemText);
+                            // eventListModel.addElement("separator");
+                        }
+
+                        // JList<String> eventList = new JList<>(eventListModel);
+                        // JScrollPane scrollPane = new JScrollPane(eventList);
+                        JScrollPane scrollPane = new JScrollPane(eventTable);
+                        events.add(scrollPane);
+                        events.setVisible(true);
+                        events.setSize(800, 800);
+
+                        events.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+                    } catch (SQLException ee) {
+                        System.out.print(ee.getMessage());
+                    } catch (Exception ee) {
+                        ee.printStackTrace();
                     }
-
-                    JList<String> eventList = new JList<>(eventListModel);
-                    JScrollPane scrollPane = new JScrollPane(eventList);
-                    events.add(scrollPane);
-                    events.setVisible(true);
-                    events.setSize(800, 800);
-
-                    events.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-                } catch (SQLException ee) {
-                    System.out.print(ee.getMessage());
-                } catch (Exception ee) {
-                    ee.printStackTrace();
                 }
-            }
+            });
+
+            // Create a JPanel to hold the components
+            JPanel panel = new JPanel(new GridLayout(7, 2));
+
+            // Add components to the panel
+            panel.add(new JLabel("title: "));
+            panel.add(title);
+            panel.add(new JLabel("participants: "));
+            panel.add(participants);
+
+            panel.add(new JLabel("location:  "));
+            panel.add(location);
+            panel.add(new JLabel("From (date):  "));
+            panel.add(startDate);
+            panel.add(new JLabel("To (date):  "));
+            panel.add(endDate);
+            // Add the JDatePicker to the panel
+            panel.add(searchButton);
+
+            // Add the panel to the frame
+            viewEventsDialog.add(panel);
+
+            // Set frame properties
+            viewEventsDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
+            viewEventsDialog.setSize(400, 800);
+            viewEventsDialog.setVisible(true);
         });
-
-        // Create a JPanel to hold the components
-        JPanel panel = new JPanel(new GridLayout(7, 2));
-
-        // Add components to the panel
-        panel.add(new JLabel("title: "));
-        panel.add(title);
-        panel.add(new JLabel("participants: "));
-        panel.add(participants);
-
-        panel.add(new JLabel("location:  "));
-        panel.add(location);
-        panel.add(new JLabel("From (date):  "));
-        panel.add(startDate);
-        panel.add(new JLabel("To (date):  "));
-        panel.add(endDate);
-        // Add the JDatePicker to the panel
-        panel.add(searchButton);
-
-        // Add the panel to the frame
-        viewEventsDialog.add(panel);
-
-        // Set frame properties
-        viewEventsDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        viewEventsDialog.setSize(400, 800);
-        viewEventsDialog.setVisible(true);
     }
 
     // After clicking notification button
@@ -412,8 +495,7 @@ public class Helpers {
                         nameCreated,
                         passwdCreated, phoneCreated, emailCreated);
 
-                try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                        "dob", "dobstudio");
+                try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
                         PreparedStatement preparedStatement = conn.prepareStatement(SQL_INSERT)) {
                     System.out.println(preparedStatement);
                     Integer rowInserted = preparedStatement.executeUpdate();
@@ -494,8 +576,7 @@ public class Helpers {
                             nameCreated,
                             passwdCreated, phoneCreated, emailCreated, myName, password_res.get());
 
-                    try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                            "dob", "dobstudio");
+                    try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
                             PreparedStatement preparedStatement = conn.prepareStatement(SQL_UPDATE)) {
                         System.out.println(preparedStatement);
                         Integer rowAffected = preparedStatement.executeUpdate();
@@ -537,8 +618,7 @@ public class Helpers {
                 String SQL_SELECT = String.format(
                         "SELECT * FROM users WHERE name='%s' AND password='%s';", myName, passwdToVerify);
 
-                try (Connection conn = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                        "dob", "dobstudio");
+                try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
                         PreparedStatement preparedStatement = conn.prepareStatement(SQL_SELECT)) {
                     ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -600,8 +680,7 @@ public class Helpers {
     }
 
     private static boolean isEventAvailable(Date newStartTime, Date newEndTime) {
-        try (Connection connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/dob",
-                "dob", "dobstudio")) {
+        try (Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd)) {
             String query = "SELECT * FROM events WHERE " +
                     "(start_time, end_time) OVERLAPS (?, ?)";
 
@@ -655,6 +734,15 @@ public class Helpers {
                             + String.format(" AND participants LIKE '%%%s%%'", participant)
                             + " AND location=" + location + ";";
                 }
+            }
+        }
+    }
+
+    public static void clearButtons(JPanel panel) {
+        Component[] components = panel.getComponents();
+        for (Component component : components) {
+            if (component instanceof JButton) {
+                panel.remove(component);
             }
         }
     }

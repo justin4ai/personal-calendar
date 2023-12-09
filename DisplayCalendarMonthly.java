@@ -60,10 +60,11 @@ public class DisplayCalendarMonthly extends JFrame {
     int lastDate; // 월의 마지막 날
 
     public DisplayCalendarMonthly() {
+        JOptionPane.showMessageDialog(null,
+                String.format("Hello %s, welcome to Justin's family calendar.", PersonalCalendar.name),
+                String.format("Your user id is '%d'", PersonalCalendar.userID), JOptionPane.INFORMATION_MESSAGE);
         frame2 = new JFrame("Family Calendar by Justin");
-        System.out.println(String.format("Hello %s, welcome to Justin's family calendar.", PersonalCalendar.name));
-        System.out.println(String.format("Your user id is '%d'", PersonalCalendar.userID));
-        System.out.println("-------------------Monthly Mode-------------------");
+
         // 디자인
         p_north = new JPanel();
         p_south = new JPanel();
@@ -92,7 +93,7 @@ public class DisplayCalendarMonthly extends JFrame {
         p_north.add(bt_next);
         p_south.add(bt_create_event);
         // p_north.add(bt_RVSP);
-        p_south.add(bt_notification);
+        // p_south.add(bt_notification);
         // p_south.add(bt_update_event);
         p_south.add(bt_delete_event);
         p_south.add(bt_eventList);
@@ -139,11 +140,11 @@ public class DisplayCalendarMonthly extends JFrame {
         });
 
         // Notification
-        bt_notification.addActionListener(new ActionListener() {
-            public void actionPerformed(ActionEvent e) {
-                Helpers.notification();
-            }
-        });
+        // bt_notification.addActionListener(new ActionListener() {
+        // public void actionPerformed(ActionEvent e) {
+        // Helpers.notification();
+        // }
+        // });
 
         // RVSP
         // bt_RVSP.addActionListener(new ActionListener() {
@@ -190,7 +191,7 @@ public class DisplayCalendarMonthly extends JFrame {
         printDate(); // 상자에 날짜 그리기
 
         frame2.setVisible(true);
-        frame2.setBounds(100, 100, 830, 780);
+        frame2.setBounds(100, 100, 1200, 1200);
         frame2.setResizable(false);
 
         frame2.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -198,36 +199,31 @@ public class DisplayCalendarMonthly extends JFrame {
     }
 
     public void getCurrentDate() {
-        System.out.println("getCurrentDate called");
         cal = Calendar.getInstance();
     }
 
     // 시작 요일, 끝 날 등 구하기
     public void getDateInfo() {
-        System.out.println("getDateInfo called");
         yy = cal.get(Calendar.YEAR);
         mm = cal.get(Calendar.MONTH);
         startDay = getFirstDayOfMonth(yy, mm);
-        System.out.println(String.format("Start day calculated : %s", startDay));
         lastDate = getLastDate(yy, mm);
     }
 
     // 요일 생성
     public void createDay() {
-        System.out.println("createdDay called");
 
         for (int i = 0; i < 7; i++) {
-            DateBox dayBox = new DateBox(dayAr[i], Color.gray, 100, 70);
+            DateBox dayBox = new DateBox(dayAr[i], Color.gray, 150, 70);
             p_center.add(dayBox);
         }
     }
 
     // 날짜 생성
     public void createDate() {
-        System.out.println("createDate called");
         for (int i = 0; i < dayAr.length * 6; i++) {
             DateBox dateBox = new DateBox("",
-                    Color.LIGHT_GRAY, 100, 100);
+                    Color.LIGHT_GRAY, 150, 100);
             p_center.add(dateBox);
             dateBoxAr[i] = dateBox;
             // p_center.add(new JButton());
@@ -275,8 +271,9 @@ public class DisplayCalendarMonthly extends JFrame {
                 n++;
             } else {
 
-                System.out.println(
-                        String.format("Date : %s-%s-%s", cal.get(Calendar.YEAR) + "", month, Integer.toString(n)));
+                // System.out.println(
+                // String.format("Date : %s-%s-%s", cal.get(Calendar.YEAR) + "", month,
+                // Integer.toString(n)));
                 dateBoxAr[i].day = "";
                 // dateBoxAr[i].repaint();
             }
@@ -285,7 +282,7 @@ public class DisplayCalendarMonthly extends JFrame {
         // p_center.repaint();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                // GUI 업데이트 작업들을 이곳에 작성
+                // // GUI 업데이트 작업들을 이곳에 작성
                 p_center.repaint();
             }
         });
