@@ -49,8 +49,8 @@ public class DisplayLoginPanel extends JFrame {
                     // Close the JFrame
                     frame.dispose();
 
-                    DisplayCalendarMonthly y = new DisplayCalendarMonthly();
-
+                    // DisplayCalendarMonthly y = new DisplayCalendarMonthly();
+                    SwingUtilities.invokeLater(() -> new DisplayCalendarMonthly());
                 }
 
                 else {

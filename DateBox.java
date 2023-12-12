@@ -58,7 +58,7 @@ public class DateBox extends JPanel {
 
         if ((flag == true) && (day != "")) {
             System.out.println(String.format("Datebox for %s-%s-%s", year, month, day));
-            Helpers.clearButtons(this);
+            // Helpers.clearButtons(this);
             fetchEvents();
         }
     }
@@ -74,15 +74,18 @@ public class DateBox extends JPanel {
             String sql = "SELECT * FROM events " +
                     "WHERE EXTRACT(YEAR FROM start_time) = ? " +
                     "AND EXTRACT(MONTH FROM start_time) = ? " +
-                    "AND EXTRACT(DAY FROM start_time) = ?";
+                    "AND EXTRACT(DAY FROM start_time) = ? AND creator_id = ?";
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
                 preparedStatement.setInt(1, Integer.parseInt(year));
                 preparedStatement.setInt(2, Integer.parseInt(month));
                 preparedStatement.setInt(3, Integer.parseInt(day));
+                preparedStatement.setInt(4, PersonalCalendar.userID);
 
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    removeAll();
                     while (resultSet.next()) {
+                        System.out.println("event fetched!");
                         // 일정 정보 가져오기
                         String title = resultSet.getString("title");
                         String location = resultSet.getString("location");
@@ -97,6 +100,8 @@ public class DateBox extends JPanel {
                         // JButton을 DateBox에 추가
                         add(eventButton);
                     }
+                    // revalidate();
+                    // repaint();
                 }
             }
         } catch (SQLException e) {

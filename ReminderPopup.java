@@ -37,12 +37,15 @@ public class ReminderPopup {
             String currentDateTimeString = dateFormat.format(currentDate);
 
             // 현재 시간과 일치하는 이벤트 찾기
-            String sql = "SELECT e.title, e.location, e.participants, e.start_time, e.end_time " +
+            String sql = "SELECT e.event_id, e.title, e.location, e.participants, e.start_time, e.end_time " +
                     "FROM events e " +
                     "INNER JOIN reminders r ON e.event_id = r.event_id " +
                     "WHERE e.creator_id = ? AND r.time_to_send = ?::timestamp";
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+            String sql2 = "DELETE FROM reminders r WHERE r.event_id = ? AND r.time_to_send = ?::timestamp";
+
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql);
+                    PreparedStatement preparedStatement2 = connection.prepareStatement(sql2)) {
                 preparedStatement.setInt(1, PersonalCalendar.userID);
                 preparedStatement.setString(2, currentDateTimeString);
 
@@ -57,7 +60,10 @@ public class ReminderPopup {
 
                         // TODO: 팝업 창 표시 논리 구현
                         showPopup(title, location, participants, startTime, endTime);
-                        // 이제 지워야함
+                        preparedStatement2.setInt(1, resultSet.getInt("event_id"));
+                        preparedStatement2.setString(2, currentDateTimeString);
+                        preparedStatement2.executeUpdate();
+
                     }
                 }
             }

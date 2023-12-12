@@ -38,7 +38,7 @@ public class DisplayCalendarMonthly extends JFrame {
     JButton bt_delete_event;
     JButton bt_eventList;
     JButton bt_modeChange;
-    JButton bt_notification;
+    JButton bt_viewEvents;
     JButton bt_createUser;
     JButton bt_updateUser;
     JPanel dayPanel;
@@ -86,7 +86,7 @@ public class DisplayCalendarMonthly extends JFrame {
         bt_update_event = new JButton("Modify an event");
         bt_delete_event = new JButton("Delete an event");
         // bt_RVSP = new JButton("RSVP");
-        bt_notification = new JButton("Notifications");
+        bt_viewEvents = new JButton("View all events");
         bt_eventList = new JButton("View event list");
         bt_createUser = new JButton("Create user");
         bt_modeChange = new JButton("Mode change");
@@ -103,8 +103,8 @@ public class DisplayCalendarMonthly extends JFrame {
         p_north.add(bt_next);
         p_south.add(bt_create_event);
         // p_north.add(bt_RVSP);
-        // p_south.add(bt_notification);
-        // p_south.add(bt_update_event);
+        p_south.add(bt_viewEvents);
+        p_south.add(bt_update_event);
         p_south.add(bt_delete_event);
         p_south.add(bt_eventList);
         p_south.add(bt_modeChange);
@@ -150,11 +150,11 @@ public class DisplayCalendarMonthly extends JFrame {
         });
 
         // Notification
-        // bt_notification.addActionListener(new ActionListener() {
-        // public void actionPerformed(ActionEvent e) {
-        // Helpers.notification();
-        // }
-        // });
+        bt_viewEvents.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                Helpers.viewEvents();
+            }
+        });
 
         // RVSP
         // bt_RVSP.addActionListener(new ActionListener() {
@@ -174,9 +174,8 @@ public class DisplayCalendarMonthly extends JFrame {
         bt_modeChange.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 System.out.println("Before disposing");
-                frame2.dispose();
                 System.out.println("After disposing");
-                Helpers.modeChange(3);
+                Helpers.modeChange(frame2);
             }
         });
 
@@ -302,6 +301,9 @@ public class DisplayCalendarMonthly extends JFrame {
     public void updateWeek(int data) {
         // 캘린더 객체에 들어있는 날짜를 기준으로 월 정보를 바꿔준다.
         cal.set(Calendar.WEEK_OF_MONTH, ww + data);
+        // dateBoxAr = new DateBox[dayAr.length * 6];
+        // createDay();
+        // createDate();
         getDateInfo();
         printDate();
         setDateTitle();
@@ -311,6 +313,9 @@ public class DisplayCalendarMonthly extends JFrame {
     public void updateMonth(int data) {
         // 캘린더 객체에 들어있는 날짜를 기준으로 월 정보를 바꿔준다.
         cal.set(Calendar.MONTH, mm + data);
+        // dateBoxAr = new DateBox[dayAr.length * 6];
+        // createDay();
+        // createDate();
         getDateInfo();
         printDate();
         setDateTitle();

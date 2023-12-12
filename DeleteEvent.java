@@ -8,11 +8,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class EventListApp extends JFrame {
+public class DeleteEvent extends JFrame {
     private DefaultListModel<String> eventListModel;
     private JList<String> eventList;
 
-    public EventListApp() {
+    public DeleteEvent() {
         setTitle("Event List");
         setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -60,8 +60,9 @@ public class EventListApp extends JFrame {
 
             PreparedStatement preparedStatement = connection
                     .prepareStatement(
-                            "SELECT event_id, title, location, participants, start_time, end_time FROM events");
+                            "SELECT event_id, title, location, participants, start_time, end_time FROM events WHERE creator_id = ?");
 
+            preparedStatement.setInt(1, PersonalCalendar.userID);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
@@ -83,8 +84,9 @@ public class EventListApp extends JFrame {
         int selectedIndex = eventList.getSelectedIndex();
         if (selectedIndex != -1) {
             String selectedEvent = eventListModel.get(selectedIndex);
-            int eventId = Integer.parseInt(selectedEvent.split(")")[0].split("(")[1].trim());
-
+            // int eventId =
+            // Integer.parseInt(selectedEvent.split(")")[0].split("(")[1].trim());
+            int eventId = Integer.parseInt(selectedEvent.split("\\)")[0].split("\\(")[1].trim());
             try {
                 Connection connection = DriverManager.getConnection(
                         Helpers.dbURL,
@@ -103,6 +105,7 @@ public class EventListApp extends JFrame {
                 preparedStatement2.executeUpdate();
 
                 preparedStatement.setInt(1, eventId);
+                // preparedStatement.setInt(2, PersonalCalendar.userID);
                 preparedStatement.executeUpdate();
 
                 preparedStatement2.close();

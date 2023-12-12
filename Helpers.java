@@ -130,52 +130,54 @@ public class Helpers {
                                 }
 
                                 /////////////////////
-                                long startTime = dateFormat.parse(startCreated).getTime();
+                                if (!intervalCreated.equals("0")) {
+                                    long startTime = dateFormat.parse(startCreated).getTime();
 
-                                long timeFrameInMillis = Integer.parseInt(timeframeCreated) * 60 * 1000; // time_frame을
-                                                                                                         // 밀리초로
-                                                                                                         // 변환
-                                long intervalInMillis = Integer.parseInt(intervalCreated) * 60 * 1000; // interval을
-                                                                                                       // 밀리초로
-                                                                                                       // 변환
+                                    long timeFrameInMillis = Integer.parseInt(timeframeCreated) * 60 * 1000; // time_frame을
+                                                                                                             // 밀리초로
+                                                                                                             // 변환
+                                    long intervalInMillis = Integer.parseInt(intervalCreated) * 60 * 1000; // interval을
+                                                                                                           // 밀리초로
+                                                                                                           // 변환
 
-                                long endTime = startTime - timeFrameInMillis; // 시작 시간에서 time_frame 전의 시간
+                                    long endTime = startTime - timeFrameInMillis; // 시작 시간에서 time_frame 전의 시간
 
-                                // 현재 시각 가져오기
-                                long currentMillis = System.currentTimeMillis();
+                                    // 현재 시각 가져오기
+                                    long currentMillis = System.currentTimeMillis();
 
-                                // reminder 생성 및 데이터베이스에 추가
+                                    // reminder 생성 및 데이터베이스에 추가
 
-                                System.out.println(String.format("endTime : %s", endTime));
-                                System.out.println(String.format("startTime : %s", startTime));
-                                while (endTime < startTime) {
                                     System.out.println(String.format("endTime : %s", endTime));
                                     System.out.println(String.format("startTime : %s", startTime));
-                                    // reminder 생성
-                                    if (endTime > currentMillis) { // reminder에 넣을 시간이 지금보다 나중일 때만
-                                        Timestamp reminderTime = new Timestamp(endTime);
+                                    while (endTime < startTime) {
+                                        System.out.println(String.format("endTime : %s", endTime));
+                                        System.out.println(String.format("startTime : %s", startTime));
+                                        // reminder 생성
+                                        if (endTime > currentMillis) { // reminder에 넣을 시간이 지금보다 나중일 때만
+                                            Timestamp reminderTime = new Timestamp(endTime);
 
-                                        // 데이터베이스에 추가
-                                        String SQL_INSERT3 = "INSERT INTO reminders (event_id, time_to_send) VALUES (?, ?);"; // for
-                                                                                                                              // reminders
+                                            // 데이터베이스에 추가
+                                            String SQL_INSERT3 = "INSERT INTO reminders (event_id, time_to_send) VALUES (?, ?);"; // for
+                                                                                                                                  // reminders
 
-                                        try (Connection conn2 = DriverManager.getConnection(dbURL, dbUser,
-                                                dbPasswd);
-                                                PreparedStatement preparedStatement3 = conn2
-                                                        .prepareStatement(SQL_INSERT3);) {
+                                            try (Connection conn2 = DriverManager.getConnection(dbURL, dbUser,
+                                                    dbPasswd);
+                                                    PreparedStatement preparedStatement3 = conn2
+                                                            .prepareStatement(SQL_INSERT3);) {
 
-                                            preparedStatement3.setInt(1, eventID);
-                                            preparedStatement3.setTimestamp(2, reminderTime);
+                                                preparedStatement3.setInt(1, eventID);
+                                                preparedStatement3.setTimestamp(2, reminderTime);
 
-                                            preparedStatement3.executeUpdate();
+                                                preparedStatement3.executeUpdate();
+                                            }
+
                                         }
 
+                                        // 다음 reminder의 시간으로 이동
+                                        endTime += intervalInMillis;
                                     }
-
-                                    // 다음 reminder의 시간으로 이동
-                                    endTime += intervalInMillis;
+                                    /////////////////////
                                 }
-                                /////////////////////
 
                                 createEventDialog.dispose();
                             }
@@ -240,61 +242,22 @@ public class Helpers {
         createEventDialog.setVisible(true);
     }
 
+    public static void viewEvents() {
+
+        ViewEvents eventTableView = new ViewEvents();
+        eventTableView.setVisible(true);
+
+    }
+
     // After clicking modify an event button
     public static void updateEvent() {
-        JDialog updateEventDialog = new JDialog();
-        updateEventDialog.setTitle("Update an event");
-
-        // Create JTextField components for name and password
-
-        // Create JButton to submit the input
-        JButton updateButton = new JButton("Update");
-
-        // Create ActionListener for the submit button
-        updateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-
-            }
-        });
-
-        // Add components to the panel
-        JPanel listPanel = new JPanel();
-        listPanel.setLayout(new BoxLayout(listPanel, BoxLayout.Y_AXIS));
-
-        JPanel event1 = new JPanel();
-        JPanel event2 = new JPanel();
-
-        event1.add(new JLabel("Interim event 1"));
-        event2.add(new JLabel("Interim event 2"));
-
-        listPanel.add(event1);
-        listPanel.add(event2);
-
-        JScrollPane scrollPanel = new JScrollPane(listPanel);
-        scrollPanel.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-        // Add the scrollPanel to the dialogPanel
-        JPanel dialogPanel = new JPanel();
-        dialogPanel.setLayout(new BorderLayout());
-        dialogPanel.add(scrollPanel, BorderLayout.CENTER);
-
-        // Add the updateButton to the dialogPanel
-        dialogPanel.add(updateButton, BorderLayout.SOUTH);
-
-        // Add the dialogPanel to the updateEventDialog
-        updateEventDialog.add(dialogPanel);
-
-        // Add the panel to the frame
-
-        // Set frame properties
-        updateEventDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        updateEventDialog.setSize(400, 800);
-        updateEventDialog.setVisible(true);
+        UpdateEvent app = new UpdateEvent();
+        app.setVisible(true);
     }
 
     // After clicking delete an event button
     public static void deleteEvent() {
-        EventListApp app = new EventListApp();
+        DeleteEvent app = new DeleteEvent();
         app.setVisible(true);
     }
 
@@ -349,7 +312,7 @@ public class Helpers {
                     System.out.println(String.format("locationCreated : %s", locationCreated));
                     System.out.println(String.format("participantsCreated : %s", participantsCreated));
 
-                    String SQL_SELECT = "SELECT * FROM events WHERE start_time BETWEEN ? AND ?"
+                    String SQL_SELECT = "SELECT * FROM events WHERE start_time BETWEEN ? AND ? AND creator_id = ?"
                             + converter(titleCreated, participantsCreated, locationCreated);
 
                     try (Connection conn = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
@@ -362,6 +325,7 @@ public class Helpers {
                                         dateFormat.parse(endDateCreated).getTime() + 24 * 60 * 60 * 1000 - 1)); // 23시
                         // 59분
                         // 59초
+                        preparedStatement.setInt(3, PersonalCalendar.userID);
                         System.out.println(preparedStatement);
                         ResultSet resultSet = preparedStatement.executeQuery();
 
@@ -468,15 +432,52 @@ public class Helpers {
     }
 
     // For changing mode between monthly/weekly
-    public static void modeChange(int flag) {
-        if (flag == 3) { // Monthly
-            System.out.println("KEKE");
-            // frame2.dispose();
-            new DisplayCalendarWeekly();
-        } else {
-            // frame3.dispose();
-            DisplayCalendarMonthly tmp1 = new DisplayCalendarMonthly();
-        }
+    public static void modeChange(JFrame window) {
+        JDialog mode = new JDialog();
+        mode.setTitle("Mode Selection");
+        mode.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        JButton monthlyButton = new JButton("Monthly");
+        JButton weeklyButton = new JButton("Weekly");
+        JButton dailyButton = new JButton("Daily");
+
+        monthlyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode.dispose(); // Close the mode selection window
+                window.dispose();
+                new DisplayCalendarMonthly(); // Open the monthly calendar
+            }
+        });
+
+        weeklyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode.dispose(); // Close the mode selection window
+                window.dispose();
+                new DisplayCalendarWeekly(); // Open the weekly calendar
+            }
+        });
+
+        dailyButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                mode.dispose(); // Close the mode selection window
+                window.dispose();
+                new DisplayCalendarDaily(); // Open the daily calendar
+            }
+        });
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new GridLayout(3, 1));
+        panel.add(monthlyButton);
+        panel.add(weeklyButton);
+        panel.add(dailyButton);
+
+        mode.add(panel);
+        mode.pack();
+        mode.setLocationRelativeTo(null);
+        mode.setVisible(true);
     }
 
     // After clicking create an user button
@@ -694,11 +695,12 @@ public class Helpers {
     private static boolean isEventAvailable(Date newStartTime, Date newEndTime) {
         try (Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd)) {
             String query = "SELECT * FROM events WHERE " +
-                    "(start_time, end_time) OVERLAPS (?, ?)";
+                    "(start_time, end_time) OVERLAPS (?, ?) AND creator_id = ?";
 
             try (PreparedStatement preparedStatement = connection.prepareStatement(query)) {
                 preparedStatement.setTimestamp(1, new Timestamp(newStartTime.getTime()));
                 preparedStatement.setTimestamp(2, new Timestamp(newEndTime.getTime()));
+                preparedStatement.setInt(3, PersonalCalendar.userID);
 
                 try (ResultSet resultSet = preparedStatement.executeQuery()) {
                     return !resultSet.next(); // 겹치는 경우가 없으면 사용 가능
