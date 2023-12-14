@@ -90,6 +90,7 @@ public class ReminderPopup {
         popup.add(panel);
         popup.pack();
         popup.setVisible(true);
+        popup.setLocationRelativeTo(null);
         popup.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 }

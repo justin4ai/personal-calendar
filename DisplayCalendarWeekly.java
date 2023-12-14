@@ -54,9 +54,12 @@ public class DisplayCalendarWeekly extends JFrame {
     int yy; // 기준점이 되는 년도
     int mm; // 기준점이 되는 월
     int ww;
+    int titleYear;
+    int titleMonth;
     int dd;
     int startDay; // 월의 시작 요일
     int lastDate; // 월의 마지막 날
+    JLabel yearMonthLabel = new JLabel();
 
     public DisplayCalendarWeekly() {
 
@@ -91,7 +94,7 @@ public class DisplayCalendarWeekly extends JFrame {
         bt_update_event = new JButton("Modify an event");
         bt_delete_event = new JButton("Delete an event");
         // bt_RVSP = new JButton("RSVP");
-        bt_notification = new JButton("Notifications");
+        // bt_notification = new JButton("Notifications");
         bt_eventList = new JButton("View event list");
         bt_createUser = new JButton("Create user");
         bt_modeChange = new JButton("Mode change");
@@ -182,15 +185,21 @@ public class DisplayCalendarWeekly extends JFrame {
         updateWeeklyCalendar(weeklyTable, cal.getTime());
 
         p_north.add(prevWeekButton);
+
+        yearMonthLabel.setText("" + titleYear + "-" + titleMonth);
+
+        p_north.add(yearMonthLabel);
+
         p_north.add(nextWeekButton);
         p_south.add(bt_create_event);
-        p_north.add(bt_RVSP);
-        p_north.add(bt_notification);
+        // p_north.add(bt_RVSP);
+        // p_north.add(bt_notification);
         p_south.add(bt_update_event);
         p_south.add(bt_delete_event);
         p_south.add(bt_eventList);
         p_south.add(bt_modeChange);
         p_south.add(bt_createUser);
+        p_south.add(bt_updateUser);
 
         // JScrollPane scrollPane = new JScrollPane(calendarPanel);
         // comboBox
@@ -242,7 +251,6 @@ public class DisplayCalendarWeekly extends JFrame {
     }
 
     public void updateWeeklyCalendar(JTable weeklyTable, Date startDate) {
-        System.out.println("Inside the method!");
         DefaultTableModel weeklyModel = (DefaultTableModel) weeklyTable.getModel();
         weeklyModel.setRowCount(0);
 
@@ -250,8 +258,10 @@ public class DisplayCalendarWeekly extends JFrame {
         weeklyTable.setRowHeight(rowHeight);
 
         Calendar currentCalendar = calendar.getInstance();
-        currentCalendar.setTime(startDate);
 
+        currentCalendar.setTime(startDate);
+        titleYear = currentCalendar.get(Calendar.YEAR);
+        titleMonth = currentCalendar.get(Calendar.MONTH);
         for (int i = 0; i < 7; i++) {
             int dayOfMonth = currentCalendar.get(Calendar.DAY_OF_MONTH);
 
@@ -268,4 +278,5 @@ public class DisplayCalendarWeekly extends JFrame {
         }
 
     }
+
 }

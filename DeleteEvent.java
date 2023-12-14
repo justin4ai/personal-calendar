@@ -93,13 +93,19 @@ public class DeleteEvent extends JFrame {
                         Helpers.dbUser,
                         Helpers.dbPasswd);
 
+                String SQL_DELETE_Rs = "DELETE FROM reminders WHERE event_id = ?";
                 String SQL_DELETE_E = "DELETE FROM events WHERE event_id = ?";
                 String SQL_DELETE_R = "DELETE FROM reminderinfo WHERE event_id = ?";
 
+                PreparedStatement preparedStatement0 = connection
+                        .prepareStatement(SQL_DELETE_Rs);
                 PreparedStatement preparedStatement = connection
                         .prepareStatement(SQL_DELETE_E);
                 PreparedStatement preparedStatement2 = connection
                         .prepareStatement(SQL_DELETE_R);
+
+                preparedStatement0.setInt(1, eventId);
+                preparedStatement0.executeUpdate();
 
                 preparedStatement2.setInt(1, eventId);
                 preparedStatement2.executeUpdate();

@@ -87,7 +87,7 @@ public class DisplayCalendarMonthly extends JFrame {
         bt_delete_event = new JButton("Delete an event");
         // bt_RVSP = new JButton("RSVP");
         bt_viewEvents = new JButton("View all events");
-        bt_eventList = new JButton("View event list");
+        bt_eventList = new JButton("Search events");
         bt_createUser = new JButton("Create user");
         bt_modeChange = new JButton("Mode change");
         bt_updateUser = new JButton("Update user");

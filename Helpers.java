@@ -242,6 +242,7 @@ public class Helpers {
         createEventDialog.setVisible(true);
     }
 
+    // After clicking view all events button
     public static void viewEvents() {
 
         ViewEvents eventTableView = new ViewEvents();
@@ -249,7 +250,7 @@ public class Helpers {
 
     }
 
-    // After clicking modify an event button
+    // After clicking update an event button
     public static void updateEvent() {
         UpdateEvent app = new UpdateEvent();
         app.setVisible(true);
@@ -261,6 +262,7 @@ public class Helpers {
         app.setVisible(true);
     }
 
+    // After clicking search events button
     public static void eventList() {
         SwingUtilities.invokeLater(() -> {
             JDialog viewEventsDialog = new JDialog();
@@ -414,24 +416,7 @@ public class Helpers {
         });
     }
 
-    // After clicking notification button
-    public static void notification() {
-        JDialog notificationDialog = new JDialog();
-        notificationDialog.setTitle("Notification");
-
-        // Create a JPanel to hold the components
-        JPanel panel = new JPanel(new GridLayout(7, 2));
-
-        // Add the panel to the frame
-        notificationDialog.add(panel);
-
-        // Set frame properties
-        notificationDialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        notificationDialog.setSize(400, 800);
-        notificationDialog.setVisible(true);
-    }
-
-    // For changing mode between monthly/weekly
+    // For changing mode between monthly/weekly/daily
     public static void modeChange(JFrame window) {
         JDialog mode = new JDialog();
         mode.setTitle("Mode Selection");
@@ -551,6 +536,7 @@ public class Helpers {
         createUserDialog.setVisible(true);
     }
 
+    // After clicking update an user button
     public static void updateUser(String myName) {
 
         AtomicBoolean flag = new AtomicBoolean(false);
@@ -692,6 +678,7 @@ public class Helpers {
 
     }
 
+    // For checking event availability when creating
     private static boolean isEventAvailable(Date newStartTime, Date newEndTime) {
         try (Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd)) {
             String query = "SELECT * FROM events WHERE " +
@@ -712,6 +699,7 @@ public class Helpers {
         }
     }
 
+    // Convert given information into a SQL query
     private static String converter(String title, String participant, String location) {
         if (title == "") {
             if (participant.equals("")) {
@@ -754,6 +742,7 @@ public class Helpers {
         }
     }
 
+    // Clearing buttons before re-drawing ones whenever we move onto other pages
     public static void clearButtons(JPanel panel) {
         Component[] components = panel.getComponents();
         for (Component component : components) {
