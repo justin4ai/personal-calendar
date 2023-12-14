@@ -29,6 +29,10 @@ public class Helpers {
     public static String dbURL = "jdbc:postgresql://127.0.0.1:5432/dob";
     public static String dbUser = "dob";
     public static String dbPasswd = "dobstudio";
+    public static String calImg = "./calendar.png";
+    public static String modifyImg = "./modify.png";
+    public static String deleteImg = "./delete.png";
+
     public static Map<String, List<String>> eventDataMap = new HashMap<>();
 
     // After clicking create an event button

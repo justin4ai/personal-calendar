@@ -22,7 +22,8 @@ public class DisplayLoginPanel extends JFrame {
     public DisplayLoginPanel() {
         // Log-in panel here
         JFrame frame = new JFrame("Log-in to family calendar");
-        ImageIcon imageIcon = new ImageIcon("./calendar.png");
+        ImageIcon imageIcon = new ImageIcon(Helpers.calImg);
+
         JLabel label = new JLabel(imageIcon);
         frame.setLocationRelativeTo(null);
 
