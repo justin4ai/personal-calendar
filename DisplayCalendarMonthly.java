@@ -46,6 +46,7 @@ public class DisplayCalendarMonthly extends JFrame {
     JFrame frame2;
     JFrame frame3;
     String month;
+    List<DateBox> dateBoxList;
 
     JPanel calendarPanel;
     Calendar cal; // 날짜 객체
@@ -76,6 +77,8 @@ public class DisplayCalendarMonthly extends JFrame {
         frame2 = new JFrame("Family Calendar by Justin");
 
         // 디자인
+        dateBoxList = new ArrayList<>();
+
         p_north = new JPanel();
         p_south = new JPanel();
         bt_prev = new JButton("previous");
@@ -292,6 +295,7 @@ public class DisplayCalendarMonthly extends JFrame {
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
                 // // GUI 업데이트 작업들을 이곳에 작성
+                p_center.revalidate();
                 p_center.repaint();
             }
         });
@@ -311,14 +315,54 @@ public class DisplayCalendarMonthly extends JFrame {
 
     // 달력을 넘기거나 전으로 이동할 때 날짜 객체에 대한 정보도 변경
     public void updateMonth(int data) {
-        // 캘린더 객체에 들어있는 날짜를 기준으로 월 정보를 바꿔준다.
         cal.set(Calendar.MONTH, mm + data);
-        // dateBoxAr = new DateBox[dayAr.length * 6];
-        // createDay();
-        // createDate();
         getDateInfo();
-        printDate();
+        recreateDateBoxes();
+        // printDate();
         setDateTitle();
+
+        SwingUtilities.invokeLater(() -> {
+            frame2.repaint();
+            frame2.revalidate();
+        });
+    }
+
+    private void recreateDateBoxes() {
+        frame2.getContentPane().remove(p_center);
+        // p_center.removeAll();
+        p_center = new JPanel();
+        dateBoxList.clear();
+
+        createDay();
+
+        for (int i = 0; i < dayAr.length * 6; i++) {
+            DateBox dateBox = createDateBox(i);
+            p_center.add(dateBox);
+            dateBoxList.add(dateBox);
+        }
+
+        // SwingUtilities.invokeLater(() -> {
+        // p_center.revalidate();
+        // p_center.repaint();
+        // });
+        frame2.getContentPane().add(p_center, BorderLayout.CENTER);
+        // frame2.revalidate();
+        // frame2.repaint();
+    }
+
+    // Create a DateBox with the given index
+    private DateBox createDateBox(int index) {
+        int n = index - startDay + 1;
+        DateBox dateBox = new DateBox("", Color.LIGHT_GRAY, 150, 100);
+
+        if (n > 0 && n <= lastDate) {
+            dateBox.day = Integer.toString(n);
+            dateBox.month = month;
+            dateBox.flag = true;
+            dateBox.year = cal.get(Calendar.YEAR) + "";
+        }
+
+        return dateBox;
     }
 
     // 몇년도 몇월인지를 보여주는 타이틀 라벨의 값을 변경
