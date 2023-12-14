@@ -212,6 +212,12 @@ public class DisplayCalendarMonthly extends JFrame {
 
     public void getCurrentDate() {
         cal = Calendar.getInstance();
+
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+
     }
 
     // 시작 요일, 끝 날 등 구하기
@@ -294,7 +300,6 @@ public class DisplayCalendarMonthly extends JFrame {
         // p_center.repaint();
         SwingUtilities.invokeLater(new Runnable() {
             public void run() {
-                // // GUI 업데이트 작업들을 이곳에 작성
                 p_center.revalidate();
                 p_center.repaint();
             }
@@ -315,10 +320,11 @@ public class DisplayCalendarMonthly extends JFrame {
 
     // 달력을 넘기거나 전으로 이동할 때 날짜 객체에 대한 정보도 변경
     public void updateMonth(int data) {
-        cal.set(Calendar.MONTH, mm + data);
+        // cal.set(Calendar.MONTH, mm + data);
+        cal.add(Calendar.MONTH, data);
         getDateInfo();
         recreateDateBoxes();
-        // printDate();
+        printDate();
         setDateTitle();
 
         SwingUtilities.invokeLater(() -> {

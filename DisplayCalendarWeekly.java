@@ -1,5 +1,7 @@
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.awt.event.ActionListener;
+import java.awt.event.MouseListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,7 +10,8 @@ import java.util.Calendar;
 import java.util.Vector;
 import java.util.Locale;
 import java.util.List;
-
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -41,6 +44,7 @@ public class DisplayCalendarWeekly extends JFrame {
     JFrame frame3;
     String month;
     JButton bt_updateUser;
+    JTable weeklyTable;
 
     JPanel calendarPanel;
     Calendar cal; // 날짜 객체
@@ -68,8 +72,8 @@ public class DisplayCalendarWeekly extends JFrame {
         frame3.setSize(1600, 800);
         frame3.setLayout(new BorderLayout());
         frame3.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-        JTable weeklyTable = new JTable();
+        weeklyTable = new JTable();
+        // JTable weeklyTable = new JTable();
         JPanel p_north = new JPanel();
         JPanel p_south = new JPanel();
 
@@ -77,9 +81,13 @@ public class DisplayCalendarWeekly extends JFrame {
 
         weeklyTable.setGridColor(Color.LIGHT_GRAY);
 
+        // weeklyTable의 컬럼 구성 변경
         DefaultTableModel weeklyModel = new DefaultTableModel(
-                new Object[] { "Date/day", "Event 1", "Event 2", "Event 3", "Event 4", "Event 5", "Event 6" }, 0);
+                new Object[] { "Sun", "Mon", "Tue", "Wen", "Thur", "Fri", "Sat" }, 0);
         weeklyTable.setModel(weeklyModel);
+
+        // yearMonthLabel 초기화
+        yearMonthLabel.setText(titleYear + "-" + titleMonth);
 
         cal = Calendar.getInstance();
         // currentWeek = calendar.get(Calendar.WEEK_OF_MONTH);
@@ -184,6 +192,19 @@ public class DisplayCalendarWeekly extends JFrame {
         // System.out.println(String.format("Cal.getTime : %s", cal.getTime()));
         updateWeeklyCalendar(weeklyTable, cal.getTime());
 
+        weeklyTable.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                int row = weeklyTable.rowAtPoint(evt.getPoint());
+                int col = weeklyTable.columnAtPoint(evt.getPoint());
+
+                // 일정을 클릭하면 상세 정보를 표시
+                if (weeklyTable.getValueAt(row, col) != null) {
+                    showEventDetails(row, col);
+                }
+            }
+        });
+
         p_north.add(prevWeekButton);
 
         yearMonthLabel.setText("" + titleYear + "-" + titleMonth);
@@ -257,11 +278,12 @@ public class DisplayCalendarWeekly extends JFrame {
         int rowHeight = 100;
         weeklyTable.setRowHeight(rowHeight);
 
-        Calendar currentCalendar = calendar.getInstance();
-
+        Calendar currentCalendar = Calendar.getInstance();
         currentCalendar.setTime(startDate);
+
         titleYear = currentCalendar.get(Calendar.YEAR);
-        titleMonth = currentCalendar.get(Calendar.MONTH);
+        titleMonth = currentCalendar.get(Calendar.MONTH) + 1; // Calendar.MONTH는 0부터 시작하므로 1을 더해줍니다.
+
         for (int i = 0; i < 7; i++) {
             int dayOfMonth = currentCalendar.get(Calendar.DAY_OF_MONTH);
 
@@ -277,6 +299,76 @@ public class DisplayCalendarWeekly extends JFrame {
             currentCalendar.add(Calendar.DATE, 1);
         }
 
+        yearMonthLabel.setText(titleYear + "-" + titleMonth); // 년월 정보 업데이트
+    }
+
+    private void showEventDetails(int row, int col) {
+        // 해당 셀의 일정을 불러옴
+        String day = weeklyTable.getValueAt(row, col).toString();
+
+        // 데이터베이스에서 해당 날짜의 일정을 불러옴
+        List<Event> events = loadEventsFromDatabase(titleYear, titleMonth, day);
+
+        // 상세 정보를 표시할 다이얼로그 생성
+        JFrame detailsFrame = new JFrame("Event Details");
+        detailsFrame.setSize(400, 300);
+        detailsFrame.setLayout(new BorderLayout());
+
+        JTextArea detailsArea = new JTextArea();
+        detailsArea.setEditable(false);
+
+        // 불러온 일정 정보를 텍스트 영역에 추가
+        for (Event event : events) {
+            detailsArea.append("Title: " + event.getTitle());
+        }
+
+        detailsFrame.add(new JScrollPane(detailsArea), BorderLayout.CENTER);
+        detailsFrame.setVisible(true);
+    }
+
+    // 데이터베이스에서 해당 날짜의 일정을 불러옴
+    private List<Event> loadEventsFromDatabase(int year, int month, String day) {
+        List<Event> events = new ArrayList<>();
+
+        try {
+            Connection connection = DriverManager.getConnection(Helpers.dbURL, Helpers.dbUser, Helpers.dbPasswd);
+
+            String sql = "SELECT * FROM events " +
+                    "WHERE EXTRACT(YEAR FROM start_time) = ? " +
+                    "AND EXTRACT(MONTH FROM start_time) = ? " +
+                    "AND EXTRACT(DAY FROM start_time) = ? AND creator_id = ?";
+
+            // SQL 쿼리 작성 (예시: events 테이블에서 해당 날짜의 일정을 불러오기)
+            // String sql = "SELECT * FROM events WHERE DATE(start_time) = ? AND creator_id
+            // = ?";
+            try (PreparedStatement preparedStatement = connection.prepareStatement(sql)) {
+                preparedStatement.setInt(1, year);
+                preparedStatement.setInt(2, month);
+                preparedStatement.setInt(3, Integer.parseInt(day.split(" ")[1]));
+
+                preparedStatement.setInt(4, PersonalCalendar.userID);
+
+                // 쿼리 실행
+                try (ResultSet resultSet = preparedStatement.executeQuery()) {
+                    while (resultSet.next()) {
+
+                        int eventID = resultSet.getInt("event_id");
+                        String title = resultSet.getString("title");
+                        String location = resultSet.getString("location");
+                        String description = resultSet.getString("description");
+                        Timestamp startTime = resultSet.getTimestamp("start_time");
+                        Timestamp endTime = resultSet.getTimestamp("end_time");
+                        String participants = resultSet.getString("participants");
+
+                        events.add(new Event(eventID, title, startTime, endTime, location, participants, description));
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return events;
     }
 
 }
